@@ -28,9 +28,13 @@ function Proveedor() {
   const [submitted, setSubmitted] = useState(false);
   const [productDialog, setProductDialog] = useState(false);
   const [deleteProductDialog, setDeleteProductDialog] = useState(false);
-  const [proveedor, setProveedor] = useState(emptyProduct);
-  const [proveedores, setProveedores] = useState(null);
-  const [selectedProveedores, setSelectedProveedores] = useState(null);
+
+
+
+  const [proveedorForm, setProveedorForm] = useState(emptyProduct);
+  const [selectedProveedoresTable, setSelectedProveedoresTable] = useState([]);
+  const [proveedorListDB, setProveedorListDB] = useState([]);
+  
 
   const [id, setId] = useState("");
   const [nombre, setNombre] = useState("");
@@ -39,7 +43,6 @@ function Proveedor() {
   const [editMode, setEditMode] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
 
-  const [proveedorList, setProveedorList] = useState([]);
 
   useEffect(() => {
     getProveedores();
@@ -47,24 +50,18 @@ function Proveedor() {
 
   const getProveedores = async () => {
     axios.get("http://localhost:3002/proveedor").then((res) => {
-      setProveedores(res.data);
+      setProveedorListDB(res.data);
     });
-  };
-
-  const openNew = () => {
-    setProveedor(emptyProduct);
-    setSubmitted(false);
-    setProductDialog(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    setProveedorList([...proveedorList, proveedor]);
+    setProveedorListDB([...proveedorListDB, proveedorForm]);
 
-    if (proveedor.id) {
+    if (proveedorForm.id) {
       axios
-        .put("http://localhost:3002/productos/" + proveedor.id, proveedor)
+        .put("http://localhost:3002/productos/" + proveedorForm.id, proveedorForm)
         .then((response) => {
           setProductDialog(false);
           getProveedores();
@@ -77,7 +74,7 @@ function Proveedor() {
         });
     } else {
       axios
-        .post("http://localhost:3002/productos", proveedor)
+        .post("http://localhost:3002/productos", proveedorForm)
         .then((response) => {
           setProductDialog(false);
           getProveedores();
@@ -103,20 +100,20 @@ function Proveedor() {
 
   const onInputChange = (e, name) => {
     const val = (e.target && e.target.value) || "";
-    let _proveedor = { ...proveedor };
+    let _proveedor = { ...proveedorForm };
 
     _proveedor[`${name}`] = val;
 
-    setProveedor(_proveedor);
+    setProveedorForm(_proveedor);
   };
 
   const onInputNumberChangeCuit = (e, name) => {
     const val = e.target.value;
-    let _proveedor = { ...proveedor };
+    let _proveedor = { ...proveedorForm };
 
     _proveedor[`${name}`] = val;
 
-    setProveedor(_proveedor);
+    setProveedorForm(_proveedor);
   };
 
   const limpiarCampos = () => {
@@ -141,12 +138,12 @@ function Proveedor() {
   };
 
   const editProduct = (proveedor) => {
-    setProveedor({ ...proveedor });
+    setProveedorForm({ ...proveedor });
     setProductDialog(true);
   };
 
   const confirmDeleteProduct = (proveedor) => {
-    setProveedor(proveedor);
+    setProveedorForm(proveedor);
     setDeleteProductDialog(true);
   };
 
@@ -186,11 +183,11 @@ function Proveedor() {
 
   const eliminarProveedor = (id) => {
     axios
-      .delete("http://localhost:3002/proveedores/" + proveedor.id)
+      .delete("http://localhost:3002/proveedores/" + proveedorForm.id)
       .then((response) => {
         setDeleteProductDialog(false);
         getProveedores();
-        setProveedor(emptyProduct);
+        setProveedorForm(emptyProduct);
         toast.current.show({
           severity: "success",
           summary: "Successful",
@@ -235,7 +232,7 @@ function Proveedor() {
                 type="text"
                 name="nombre"
                 placeholder="Ingrese el nombre del Proveedor"
-                value={proveedor.nombre}
+                value={proveedorForm.nombre}
                 onChange={(e) => onInputChange(e, "nombre")}
               />
             </div>
@@ -251,7 +248,7 @@ function Proveedor() {
                 type="number"
                 name="cuit"
                 placeholder="Ingrese el cuit del Proveedor"
-                value={proveedor.cuit}
+                value={proveedorForm.cuit}
                 onChange={(e) => onInputNumberChangeCuit(e, "cuit")}
               />
             </div>
@@ -281,8 +278,8 @@ function Proveedor() {
       <div className="card">
         <DataTable
           ref={dt}
-          value={proveedorList}
-          selection={selectedProveedores}
+          value={proveedorListDB}
+          selection={selectedProveedoresTable}
           dataKey="id"
           paginator
           rows={10}
