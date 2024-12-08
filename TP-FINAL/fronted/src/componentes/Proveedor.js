@@ -4,7 +4,6 @@ import "../componentes/estilos.css";
 import { classNames } from "primereact/utils";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { Toast } from "primereact/toast";
 import { Button } from "primereact/button";
 import { Rating } from "primereact/rating";
 import { Toolbar } from "primereact/toolbar";
@@ -14,6 +13,10 @@ import { InputNumber } from "primereact/inputnumber";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Tag } from "primereact/tag";
+import { v4 as uuidv4 } from "uuid";
+
+
+import { Toast } from "primereact/toast";
 
 function Proveedor() {
   let emptyProduct = {
@@ -29,12 +32,13 @@ function Proveedor() {
   const [productDialog, setProductDialog] = useState(false);
   const [deleteProductDialog, setDeleteProductDialog] = useState(false);
 
-
-
-  const [proveedorForm, setProveedorForm] = useState(emptyProduct);
+  const [proveedorForm, setProveedorForm] = useState({
+    id: "",
+    nombreProveedor: "",
+    cuit: "",
+  });
   const [selectedProveedoresTable, setSelectedProveedoresTable] = useState([]);
   const [proveedorListDB, setProveedorListDB] = useState([]);
-  
 
   const [id, setId] = useState("");
   const [nombre, setNombre] = useState("");
@@ -43,50 +47,88 @@ function Proveedor() {
   const [editMode, setEditMode] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
 
-
   useEffect(() => {
     getProveedores();
   }, []);
 
   const getProveedores = async () => {
-    axios.get("http://localhost:3002/proveedor").then((res) => {
+
+    try {
+      const res = await axios.get("http://localhost:3002/proveedor");
+      console.log("Proveedores obtenidos:", res.data);
       setProveedorListDB(res.data);
-    });
+    } catch (error) {
+      console.error("Error al obtener proveedores:", error);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    setProveedorListDB([...proveedorListDB, proveedorForm]);
+
+    console.log("el id es:  " + proveedorForm.id);
+    console.log("el nombre es:  " + proveedorForm.nombreProveedor);
+    console.log("el cuit es:  " + proveedorForm.cuit);
+
+
+    if (!proveedorForm.nombreProveedor.trim()) {
+      // Mostrar un mensaje de error al usuario
+      alert('Por favor, ingresa un nombre para el proveedor.');
+      return;
+  }
+
+
 
     if (proveedorForm.id) {
       axios
-        .put("http://localhost:3002/productos/" + proveedorForm.id, proveedorForm)
+        .put("http://localhost:3002/proveedor/" + proveedorForm.id, proveedorForm)
         .then((response) => {
+          console.log("Respuesta PUT:", response); // Imprime la respuesta completa
           setProductDialog(false);
-          getProveedores();
+          //getProveedores();
           toast.current.show({
             severity: "success",
             summary: "Successful",
-            detail: "Product Update",
+            detail: "Product Updated",
+            life: 3000,
+          });
+        })
+        .catch((error) => {
+          console.error("Error al actualizar el proveedor:", error.response || error);
+          toast.current.show({
+            severity: "error",
+            summary: "Error",
+            detail: "Error al actualizar el proveedor",
             life: 3000,
           });
         });
     } else {
       axios
-        .post("http://localhost:3002/productos", proveedorForm)
+        .post("http://localhost:3002/proveedor", proveedorForm)
         .then((response) => {
+          console.log("Respuesta POST:", response); // Imprime la respuesta completa
           setProductDialog(false);
-          getProveedores();
+          //getProveedores();
           toast.current.show({
             severity: "success",
             summary: "Successful",
             detail: "Product Created",
             life: 3000,
           });
+        })
+        .catch((error) => {
+          console.error("Error al crear el proveedor:", error.response || error);
+          toast.current.show({
+            severity: "error",
+            summary: "Error",
+            detail: "Error al crear el proveedor",
+            life: 3000,
+          });
         });
     }
-    /* limpiarCampos(); */
+
+    proveedorForm.id = uuidv4();
+
+    setProveedorListDB([...proveedorListDB, proveedorForm]);
   };
 
   const handleEdit = (proveedor) => {
@@ -98,13 +140,13 @@ function Proveedor() {
     setEditingIndex(proveedor);
   };
 
-  const onInputChange = (e, name) => {
-    const val = (e.target && e.target.value) || "";
-    let _proveedor = { ...proveedorForm };
+  const onInputChangeInputNombre = (e) => {
+    const { name, value } = e.target;
 
-    _proveedor[`${name}`] = val;
-
-    setProveedorForm(_proveedor);
+    setProveedorForm((prevForm) => ({
+      ...prevForm,
+      [name]: value,
+    }));
   };
 
   const onInputNumberChangeCuit = (e, name) => {
@@ -226,14 +268,14 @@ function Proveedor() {
               </span>
               <input
                 className="form-control"
-                aria-label="Username"
+                aria-label="Nombre"
                 aria-describedby="basic-addon1"
                 required
                 type="text"
-                name="nombre"
+                name="nombreProveedor"
                 placeholder="Ingrese el nombre del Proveedor"
-                value={proveedorForm.nombre}
-                onChange={(e) => onInputChange(e, "nombre")}
+                value={proveedorForm.nombreProveedor}
+                onChange={(e) => onInputChangeInputNombre(e)}
               />
             </div>
             <div className="input-group mb-3">
@@ -316,6 +358,11 @@ function Proveedor() {
           ></Column>
         </DataTable>
       </div>
+
+      <div>
+      <Toast ref={toast} />
+      {/* Tu contenido aquí */}
+    </div>
     </div>
   );
 }
