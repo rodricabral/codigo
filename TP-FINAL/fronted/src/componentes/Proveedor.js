@@ -1,6 +1,6 @@
-import React, {useState, useEffect, useRef} from "react";
-import axios from 'axios';
-import  '../componentes/estilos.css';
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import "../componentes/estilos.css";
 import { classNames } from "primereact/utils";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
@@ -15,13 +15,11 @@ import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Tag } from "primereact/tag";
 
-
-function Proveedor(){
-
+function Proveedor() {
   let emptyProduct = {
     id: null,
     nombre: "",
-    cuit: 0
+    cuit: null,
   };
 
   const [globalFilter, setGlobalFilter] = useState(null);
@@ -44,14 +42,14 @@ function Proveedor(){
   const [proveedorList, setProveedorList] = useState([]);
 
   useEffect(() => {
-    getProveedores()
+    getProveedores();
   }, []);
 
   const getProveedores = async () => {
-    axios.get('http://localhost:3002/proveedor').then((res) => {
+    axios.get("http://localhost:3002/proveedor").then((res) => {
       setProveedores(res.data);
     });
-  } 
+  };
 
   const openNew = () => {
     setProveedor(emptyProduct);
@@ -60,9 +58,9 @@ function Proveedor(){
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-
-    setProveedorList(...proveedorList, proveedor)
+    e.preventDefault();
+    
+    setProveedorList([...proveedorList, proveedor]);
 
     if (proveedor.id) {
       axios
@@ -78,29 +76,29 @@ function Proveedor(){
           });
         });
     } else {
-      axios.post("http://localhost:3002/productos", proveedor).then((response) => {
-        setProductDialog(false);
-        getProveedores();
-        toast.current.show({
-          severity: "success",
-          summary: "Successful",
-          detail: "Product Created",
-          life: 3000,
+      axios
+        .post("http://localhost:3002/productos", proveedor)
+        .then((response) => {
+          setProductDialog(false);
+          getProveedores();
+          toast.current.show({
+            severity: "success",
+            summary: "Successful",
+            detail: "Product Created",
+            life: 3000,
+          });
         });
-      });
     }
-   /* limpiarCampos(); */
+    /* limpiarCampos(); */
   };
-
 
   const handleEdit = (proveedor) => {
     setId(proveedor.id);
     setNombre(proveedor.nombre);
     setCuit(proveedor.cuit);
-    
+
     setEditMode(true);
     setEditingIndex(proveedor);
-    
   };
 
   const onInputChange = (e, name) => {
@@ -112,8 +110,8 @@ function Proveedor(){
     setProveedor(_proveedor);
   };
 
-  const onInputNumberChange = (e, name) => {
-    const val = e.value || 0;
+  const onInputNumberChangeCuit = (e, name) => {
+    const val = e.target.value;
     let _proveedor = { ...proveedor };
 
     _proveedor[`${name}`] = val;
@@ -121,25 +119,25 @@ function Proveedor(){
     setProveedor(_proveedor);
   };
 
-  const limpiarCampos=()=>{
-    
-        setId('');
-        setNombre('');
-        setCuit('');
-        
+  const limpiarCampos = () => {
+    setId("");
+    setNombre("");
+    setCuit("");
+
     setEditMode(false);
-  }
+  };
 
   const updateProveedor = () => {
-    axios.put(`http://localhost:3001/api/proveedor/modificar-proveedor/${id}`, {
-      id: id,
-      nombre: nombre,
-      cuit:cuit,
+    axios
+      .put(`http://localhost:3001/api/proveedor/modificar-proveedor/${id}`, {
+        id: id,
+        nombre: nombre,
+        cuit: cuit,
       })
       .then(() => {
         limpiarCampos();
       });
-      alert("Datos guardados desde el boton de actualizar exitosamente!");
+    alert("Datos guardados desde el boton de actualizar exitosamente!");
   };
 
   const editProduct = (proveedor) => {
@@ -151,7 +149,7 @@ function Proveedor(){
     setProveedor(proveedor);
     setDeleteProductDialog(true);
   };
-  
+
   const actionBodyTemplate = (rowData) => {
     return (
       <React.Fragment>
@@ -173,7 +171,7 @@ function Proveedor(){
     );
   };
   //LISTADO DE Proveedores
- /*  const [proveedorList, setProveedorList] = useState([]);
+  /*  const [proveedorList, setProveedorList] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -187,93 +185,96 @@ function Proveedor(){
   }, []); */
 
   const eliminarProveedor = (id) => {
-    axios.delete("http://localhost:3002/proveedores/" + proveedor.id).then((response) => {
-      setDeleteProductDialog(false);
-      getProveedores();
-      setProveedor(emptyProduct);
-      toast.current.show({
-        severity: "success",
-        summary: "Successful",
-        detail: "Product Deleted",
-        life: 3000,
+    axios
+      .delete("http://localhost:3002/proveedores/" + proveedor.id)
+      .then((response) => {
+        setDeleteProductDialog(false);
+        getProveedores();
+        setProveedor(emptyProduct);
+        toast.current.show({
+          severity: "success",
+          summary: "Successful",
+          detail: "Product Deleted",
+          life: 3000,
+        });
       });
-    });
     setDeleteProductDialog(false);
-    };
+  };
 
-    const header = (
-      <div className="flex flex-wrap gap-2 align-items-center justify-content-between">
-        <h4 className="m-0">Lista de Proveedores</h4>
-        <IconField iconPosition="left">
-          <InputIcon className="pi pi-search" />
-          <InputText
-            type="search"
-            onInput={(e) => setGlobalFilter(e.target.value)}
-            placeholder="Search..."
-          />
-        </IconField>
-      </div>
-    );
-    
+  const header = (
+    <div className="flex flex-wrap gap-2 align-items-center justify-content-between">
+      <h4 className="m-0">Lista de Proveedores</h4>
+      <IconField iconPosition="left">
+        <InputIcon className="pi pi-search" />
+        <InputText
+          type="search"
+          onInput={(e) => setGlobalFilter(e.target.value)}
+          placeholder="Search..."
+        />
+      </IconField>
+    </div>
+  );
 
-    return(
-        <div>
-            <div className="card text-center">
+  return (
+    <div>
+      <div className="card text-center">
         <div className="card-header">
           <h2>Datos de los Proveedores</h2>
         </div>
         <div className="card-body">
-        
-        <form onSubmit={handleSubmit}>
-          <div className="input-group mb-3">
-          <span className="label input-group-text" id="basic-addon1">
+          <form onSubmit={handleSubmit}>
+            <div className="input-group mb-3">
+              <span className="label input-group-text" id="basic-addon1">
                 Nombre
               </span>
-            <input
-            className="form-control"
-            aria-label="Username"
-            aria-describedby="basic-addon1"
-            required
-              type='text'
-              name="nombre"
-              placeholder='Ingrese el nombre del Proveedor'
-              value={proveedor.nombre}
-              onChange={(e) => onInputChange(e, "nombre")}
-            />
-          </div>
-          <div className="input-group mb-3">
-          <span className="label input-group-text" id="basic-addon1">
+              <input
+                className="form-control"
+                aria-label="Username"
+                aria-describedby="basic-addon1"
+                required
+                type="text"
+                name="nombre"
+                placeholder="Ingrese el nombre del Proveedor"
+                value={proveedor.nombre}
+                onChange={(e) => onInputChange(e, "nombre")}
+              />
+            </div>
+            <div className="input-group mb-3">
+              <span className="label input-group-text" id="basic-addon1">
                 Cuit
               </span>
-            <input
-            className="form-control"
-            aria-label="Username"
-            aria-describedby="basic-addon1"
-            required
-              type='text'
-              name="cuit"
-              placeholder='Ingrese el cuit del Proveedor'
-              value={proveedor.cuit}
-              onChange={(e) => onInputNumberChange(e, "cuit")}
-            />
-          </div>
-          <div className="card-footer text-body-secondary">
-                {editMode ? (
-                  <div>
-                    <button className="btn btn-warning m-2" onClick={updateProveedor}>
-                      Actualizar
-                    </button>
-                    <button className="btn btn-info m-2" onClick={limpiarCampos}>
-                      Cancelar
-                    </button>
-                  </div>
-                ) : (
-                  <button className="btn btn-success" type="submit">
-                    Agregar
+              <input
+                className="form-control"
+                aria-label="Username"
+                aria-describedby="basic-addon1"
+                required
+                type="number"
+                name="cuit"
+                placeholder="Ingrese el cuit del Proveedor"
+                value={proveedor.cuit}
+                onChange={(e) => onInputNumberChangeCuit(e, "cuit")}
+              />
+            </div>
+            <div className="card-footer text-body-secondary">
+              {editMode ? (
+                <div>
+                  <button
+                    className="btn btn-warning m-2"
+                    onClick={updateProveedor}
+                  >
+                    Actualizar
                   </button>
-                )}
+                  <button className="btn btn-info m-2" onClick={limpiarCampos}>
+                    Cancelar
+                  </button>
                 </div>
-        </form>
+              ) : (
+                <button className="btn btn-success" type="submit">
+                  Agregar
+                </button>
+              )}
+            </div>
+          </form>
         </div>
       </div>
 
@@ -318,29 +319,8 @@ function Proveedor(){
           ></Column>
         </DataTable>
       </div>
-
-        
     </div>
-    )
+  );
 }
 
 export default Proveedor;
-
-/*
-<div className="input-group mb-3">
-        <span className="input-group-text" id="basic-addon1">
-                Id
-              </span>
-            <input
-            className="form-control"
-                    aria-label="Username"
-                    aria-describedby="basic-addon1"
-                    required
-              type='text'
-              name='id'
-              placeholder='Id de product'
-              value={id}
-              onChange={(e) => setId(e.target.value)}
-            />
-          </div>
-          */

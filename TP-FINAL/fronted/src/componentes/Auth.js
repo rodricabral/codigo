@@ -44,6 +44,7 @@ export const Auth = () => {
   );
 };
 
+export default Auth;
 /*
 
     <div className="d-flex justify-content-center align-item-center">
