@@ -4,7 +4,6 @@ import "../componentes/estilos.css";
 import { classNames } from "primereact/utils";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { Toast } from "primereact/toast";
 import { Button } from "primereact/button";
 import { Rating } from "primereact/rating";
 import { Toolbar } from "primereact/toolbar";
@@ -14,6 +13,10 @@ import { InputNumber } from "primereact/inputnumber";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Tag } from "primereact/tag";
+import { v4 as uuidv4 } from "uuid";
+
+
+import { Toast } from "primereact/toast";
 
 function Pedido() {
   let emptyProduct = {
@@ -29,11 +32,17 @@ function Pedido() {
   const [productDialog, setProductDialog] = useState(false);
   const [deleteProductDialog, setDeleteProductDialog] = useState(false);
 
-  const [proveedorForm, setProveedorForm] = useState([]);
+
+
+
+  const [pedidoForm, setPedidoForm] = useState({
+    id: "",
+    productoNombre: "",
+    clienteNombre: "",
+    FechaEntrega: "",
+  });
   const [selectedProveedoresTable, setSelectedProveedoresTable] = useState([]);
   const [proveedorListDB, setProveedorListDB] = useState([]);
-
-  const [FechaEntrega, setFechaEntrega] = useState("");
 
   const [id, setId] = useState("");
   const [nombre, setNombre] = useState("");
@@ -47,47 +56,75 @@ function Pedido() {
   }, []);
 
   const getProveedores = async () => {
-    axios.get("http://localhost:3002/proveedor").then((res) => {
+
+    try {
+      const res = await axios.get("http://localhost:3002/proveedor");
+      console.log("Proveedores obtenidos:", res.data);
       setProveedorListDB(res.data);
-    });
+    } catch (error) {
+      console.error("Error al obtener proveedores:", error);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setProveedorListDB([...proveedorListDB, proveedorForm]);
+    console.log("id:  " + pedidoForm.id);
+    console.log("nombre del Producto:  " + pedidoForm.productoNombre);
+    console.log("nombre del Cliente:  " + pedidoForm.clienteNombre);
+    console.log("Fecha de Entrega:  " + pedidoForm.FechaEntrega);
 
-    if (proveedorForm.id) {
+    if (pedidoForm.id) {
       axios
-        .put(
-          "http://localhost:3002/productos/" + proveedorForm.id,
-          proveedorForm
-        )
+        .put("http://localhost:3002/pedido/" + pedidoForm.id, pedidoForm)
         .then((response) => {
+          console.log("Respuesta PUT:", response); // Imprime la respuesta completa
           setProductDialog(false);
-          getProveedores();
+          //getProveedores();
           toast.current.show({
             severity: "success",
             summary: "Successful",
-            detail: "Product Update",
+            detail: "Product Updated",
+            life: 3000,
+          });
+        })
+        .catch((error) => {
+          console.error("Error al actualizar el proveedor:", error.response || error);
+          toast.current.show({
+            severity: "error",
+            summary: "Error",
+            detail: "Error al actualizar el proveedor",
             life: 3000,
           });
         });
     } else {
       axios
-        .post("http://localhost:3002/productos", proveedorForm)
+        .post("http://localhost:3002/pedido", pedidoForm)
         .then((response) => {
+          console.log("Respuesta POST:", response); // Imprime la respuesta completa
           setProductDialog(false);
-          getProveedores();
+          //getProveedores();
           toast.current.show({
             severity: "success",
             summary: "Successful",
             detail: "Product Created",
             life: 3000,
           });
+        })
+        .catch((error) => {
+          console.error("Error al crear el proveedor:", error.response || error);
+          toast.current.show({
+            severity: "error",
+            summary: "Error",
+            detail: "Error al crear el proveedor",
+            life: 3000,
+          });
         });
     }
-    /* limpiarCampos(); */
+
+    pedidoForm.id = uuidv4();
+
+    setProveedorListDB([...proveedorListDB, pedidoForm]);
   };
 
   const handleEdit = (proveedor) => {
@@ -99,30 +136,12 @@ function Pedido() {
     setEditingIndex(proveedor);
   };
 
-  const onInputChange = (e, name) => {
-    const val = (e.target && e.target.value) || "";
-    let _proveedor = { ...proveedorForm };
+  const onInputChangeInput = (e) => {
+    const { name, value } = e.target;
 
-    _proveedor[`${name}`] = val;
-
-    setProveedorForm(_proveedor);
-  };
-
-  const onInputNumberChangeCuit = (e, name) => {
-    const val = e.target.value;
-    let _proveedor = { ...proveedorForm };
-
-    _proveedor[`${name}`] = val;
-
-    setProveedorForm(_proveedor);
-  };
-
-  const onInputChangeFechaEntrega = (e) => {
-    const nuevaFecha = e.target.value;
-
-    setFechaEntrega((prevFechaEntrega) => ({
-      ...prevFechaEntrega,
-      FechaEntrega: nuevaFecha,
+    setPedidoForm((prevForm) => ({
+      ...prevForm,
+      [name]: value,
     }));
   };
 
@@ -148,12 +167,12 @@ function Pedido() {
   };
 
   const editProduct = (proveedor) => {
-    setProveedorForm({ ...proveedor });
+    setPedidoForm({ ...proveedor });
     setProductDialog(true);
   };
 
   const confirmDeleteProduct = (proveedor) => {
-    setProveedorForm(proveedor);
+    setPedidoForm(proveedor);
     setDeleteProductDialog(true);
   };
 
@@ -179,25 +198,25 @@ function Pedido() {
   };
   //LISTADO DE Proveedores
   /*  const [proveedorList, setProveedorList] = useState([]);
-    
-      useEffect(() => {
-        const fetchData = async () => {
-          const response = await fetch(
-            "http://localhost:3001/api/proveedor/el-proveedor"
-          );
-          const data = await response.json();
-          setProveedorList(data);
-        };
-        fetchData();
-      }, []); */
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch(
+        "http://localhost:3001/api/proveedor/el-proveedor"
+      );
+      const data = await response.json();
+      setProveedorList(data);
+    };
+    fetchData();
+  }, []); */
 
   const eliminarProveedor = (id) => {
     axios
-      .delete("http://localhost:3002/proveedores/" + proveedorForm.id)
+      .delete("http://localhost:3002/proveedores/" + pedidoForm.id)
       .then((response) => {
         setDeleteProductDialog(false);
         getProveedores();
-        setProveedorForm(emptyProduct);
+        setPedidoForm(emptyProduct);
         toast.current.show({
           severity: "success",
           summary: "Successful",
@@ -210,7 +229,7 @@ function Pedido() {
 
   const header = (
     <div className="flex flex-wrap gap-2 align-items-center justify-content-between">
-      <h4 className="m-0">Lista de Proveedores</h4>
+      <h4 className="m-0">Lista de Pedidos</h4>
       <IconField iconPosition="left">
         <InputIcon className="pi pi-search" />
         <InputText
@@ -226,40 +245,40 @@ function Pedido() {
     <div>
       <div className="card text-center">
         <div className="card-header">
-          <h2>Pedidos</h2>
+          <h2>Datos del Pedido</h2>
         </div>
         <div className="card-body">
           <form onSubmit={handleSubmit}>
             <div className="input-group mb-3">
               <span className="label input-group-text" id="basic-addon1">
-                Nombre
+                Nombre del Producto
               </span>
               <input
                 className="form-control"
-                aria-label="Username"
+                aria-label="productoNombre"
                 aria-describedby="basic-addon1"
                 required
                 type="text"
-                name="Pedido"
-                placeholder="Ingrese el nombre del Pedido"
-                value={proveedorForm.nombre}
-                onChange={(e) => onInputChange(e, "nombre")}
+                name="productoNombre"
+                placeholder="Ingrese el nombre del Producto"
+                value={pedidoForm.productoNombre}
+                onChange={(e) => onInputChangeInput(e)}
               />
             </div>
             <div className="input-group mb-3">
               <span className="label input-group-text" id="basic-addon1">
-                Cliente
+                Nombre del Cliente
               </span>
               <input
                 className="form-control"
-                aria-label="Username"
+                aria-label="clienteNombre"
                 aria-describedby="basic-addon1"
                 required
                 type="text"
-                name="Cliente"
+                name="clienteNombre"
                 placeholder="Ingrese el nombre del Cliente"
-                value={proveedorForm.cuit}
-                onChange={(e) => onInputNumberChangeCuit(e, "cuit")}
+                value={pedidoForm.clienteNombre}
+                onChange={(e) => onInputChangeInput(e)}
               />
             </div>
             <div className="input-group mb-3">
@@ -268,14 +287,14 @@ function Pedido() {
               </span>
               <input
                 className="form-control"
-                aria-label="Fecha de Entrega"
+                aria-label="FechaEntrega"
                 aria-describedby="basic-addon1"
                 required
-                type="date"
-                name="fechaEntrega"
-                placeholder="Ingrese la fecha de entrega"
-                value={proveedorForm.fechaEntrega}
-                onChange={(e) => onInputChangeFechaEntrega(e)}
+                type="Date"
+                name="FechaEntrega"
+                placeholder="Ingrese el cuit del Proveedor"
+                value={pedidoForm.FechaEntrega}
+                onChange={(e) => onInputChangeInput(e)}
               />
             </div>
             <div className="card-footer text-body-secondary">
@@ -293,7 +312,7 @@ function Pedido() {
                 </div>
               ) : (
                 <button className="btn btn-warning" type="submit">
-                  Realizar Pedido
+                  Agregar
                 </button>
               )}
             </div>
@@ -342,6 +361,11 @@ function Pedido() {
           ></Column>
         </DataTable>
       </div>
+
+      <div>
+      <Toast ref={toast} />
+      {/* Tu contenido aquí */}
+    </div>
     </div>
   );
 }
