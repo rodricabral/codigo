@@ -1,25 +1,24 @@
-import React, {useState, useEffect, useRef} from "react";
-import axios from 'axios';
-import  '../componentes/estilos.css';
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import "../componentes/estilos.css";
 import { Toast } from "primereact/toast";
 
-function Producto(){
-
+function Producto() {
   let emptyProduct = {
     id: null,
     nombre: "",
     nombreComercial: "",
-    seleccion:"",
+    seleccion: "",
     precioVenta: 0,
-    proveedor:"",
+    proveedor: "",
     precioCompra: 0,
-    fotoProducto:"" 
+    fotoProducto: "",
   };
 
   const toast = useRef(null);
   const [submitted, setSubmitted] = useState(false);
   const [productDialog, setProductDialog] = useState(false);
-  const [product, setProduct] = useState(emptyProduct);
+  const [producto, setProducto] = useState(emptyProduct);
   const [products, setProducts] = useState(null);
 
   const [id, setId] = useState("");
@@ -35,33 +34,38 @@ function Producto(){
   const [editMode, setEditMode] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
 
+  useEffect(() => {
+    getProductos();
+    getProveedores();
+  }, []);
 
-    useEffect(() => {
-      getProductos()
-    }, []);
+  const getProductos = async () => {
+    axios.get("http://localhost:3002/productos").then((res) => {
+      setProducts(res.data);
+    });
+  };
 
-    const getProductos = async () => {
-      axios.get('http://localhost:3002/productos').then((res) => {
-        setProducts(res.data);
-      });
-    }
+  const getProveedores = async () => {
+    axios.get("http://localhost:3002/proveedor").then((res) => {
+      setProveedores(res.data);
+    });
+  };
 
-    const handleImageChange = (e) => {
-      setFotoProducto(e.target.files[0]); // Guardar el archivo de imagen en el estado
-    };
+  const handleImageChange = (e) => {
+    setFotoProducto(e.target.files[0]); // Guardar el archivo de imagen en el estado
+    producto.fotoProducto = e.target.files[0];
+  };
 
-    const openNew = () => {
-      setProduct(emptyProduct);
-      setSubmitted(false);
-      setProductDialog(true);
-    };
-
+  const openNew = () => {
+    setProducto(emptyProduct);
+    setSubmitted(false);
+    setProductDialog(true);
+  };
 
   const handleSubmit = async (e) => {
-
-    if (product.id) {
+    if (producto.id) {
       axios
-        .put("http://localhost:3002/productos/" + product.id, product)
+        .put("http://localhost:3002/productos/" + producto.id, producto)
         .then((response) => {
           setProductDialog(false);
           getProductos();
@@ -73,20 +77,21 @@ function Producto(){
           });
         });
     } else {
-      axios.post("http://localhost:3002/productos", product).then((response) => {
-        setProductDialog(false);
-        getProductos();
-        toast.current.show({
-          severity: "success",
-          summary: "Successful",
-          detail: "Product Created",
-          life: 3000,
+      axios
+        .post("http://localhost:3002/productos", producto)
+        .then((response) => {
+          setProductDialog(false);
+          getProductos();
+          toast.current.show({
+            severity: "success",
+            summary: "Successful",
+            detail: "Product Created",
+            life: 3000,
+          });
         });
-      });
     }
-   /* limpiarCampos(); */
+    /* limpiarCampos(); */
   };
-
 
   const handleEdit = (product) => {
     /* setId(producto.id);
@@ -99,49 +104,46 @@ function Producto(){
     setFotoProducto(producto.fotoProducto);
     setEditMode(true);
     setEditingIndex(producto); */
-    setProduct({ ...product });
+    setProducto({ ...product });
     setProductDialog(true);
   };
 
-  const limpiarCampos=()=>{
-    
-        setId('');
-        setNombre('');
-        setNombreComercial('');
-        setSeleccion('');
-        setPrecioVenta('');
-        setProveedor('');
-        setPrecioCompra('');
-        setFotoProducto('');
+  const limpiarCampos = () => {
+    setId("");
+    setNombre("");
+    setNombreComercial("");
+    setSeleccion("");
+    setPrecioVenta("");
+    setProveedor("");
+    setPrecioCompra("");
+    setFotoProducto("");
     setEditMode(false);
-  }
+  };
 
   const updateProducto = () => {
-    axios.put(`http://localhost:3002/productos/${id}`, {
-      id: id,
-      nombre: nombre,
-      nombreComercial:nombreComercial,
-      seleccion: seleccion,
-      precioVenta:precioVenta,
-      proveedor: proveedor,
-      precioCompra: precioCompra,
-      fotoProducto: fotoProducto,
+    axios
+      .put(`http://localhost:3002/productos/${id}`, {
+        id: id,
+        nombre: nombre,
+        nombreComercial: nombreComercial,
+        seleccion: seleccion,
+        precioVenta: precioVenta,
+        proveedor: proveedor,
+        precioCompra: precioCompra,
+        fotoProducto: fotoProducto,
       })
       .then(() => {
         limpiarCampos();
       });
-      alert("Datos guardados desde el boton de actualizar exitosamente!");
+    alert("Datos guardados desde el boton de actualizar exitosamente!");
   };
-  
 
   //LISTADO DE CLIENTES
   const [productoInfoList, setProductoInfoList] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch(
-        "http://localhost:3002/productos"
-      );
+      const response = await fetch("http://localhost:3002/productos");
       const data = await response.json();
       setProductoInfoList(data);
     };
@@ -149,152 +151,171 @@ function Producto(){
   }, []);
 
   const eliminarProductoInfo = (id) => {
-    axios
-      .delete(`http://localhost:3002/productos/${id}`)
-      .then(() => {
-        setProductoInfoList(
-          productoInfoList.filter((producto) => producto.id !== id)
-        );
-      });
-    };
-    
+    axios.delete(`http://localhost:3002/productos/${id}`).then(() => {
+      setProductoInfoList(
+        productoInfoList.filter((producto) => producto.id !== id)
+      );
+    });
+  };
 
-    return(
-        <div>
-            <div className="card text-center">
+
+  const onInputChangeInput = (e) => {
+    const { name, value } = e.target;
+
+    setProducto((prevForm) => ({
+      ...prevForm,
+      [name]: value,
+    }));
+  };
+
+  return (
+    <div>
+      <div className="card text-center">
         <div className="card-header">
           <h2>Datos de los productos</h2>
         </div>
         <div className="card-body">
-        
-        <form onSubmit={handleSubmit}>  
-          <div className="input-group mb-3">
-          <span className="label input-group-text" id="basic-addon1">
+          <form onSubmit={handleSubmit}>
+            <div className="input-group mb-3">
+              <span className="label input-group-text" id="basic-addon1">
                 Nombre
               </span>
-            <input
-            className="form-control"
-            aria-label="Username"
-            aria-describedby="basic-addon1"
-            required
-              type='text'
-              name='nombre'
-              placeholder='Ingrese nombre de producto'
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-            />
-          </div>
-          <div className="input-group mb-3">
-          <span className="label input-group-text" id="basic-addon1">
+              <input
+                className="form-control"
+                aria-label="nombre"
+                aria-describedby="basic-addon1"
+                required
+                type="text"
+                name="nombre"
+                placeholder="Ingrese nombre de producto"
+                value={producto.nombre}
+                onChange={(e) => onInputChangeInput(e)}
+              />
+            </div>
+            <div className="input-group mb-3">
+              <span className="label input-group-text" id="basic-addon1">
                 Nombre Comercial
               </span>
-            <input
-            className="form-control"
-            aria-label="Username"
-            aria-describedby="basic-addon1"
-            required
-              type='text'
-              name='nombreComercial'
-              placeholder='Ingrese nombre comercial de producto'
-              value={nombreComercial}
-              onChange={(e) => setNombreComercial(e.target.value)}
-            />
-          </div>
-          <div className="input-group mb-3">
-          <span className="label input-group-text" id="basic-addon1">
-                <select 
-          className="form-control"
-          aria-label="Username"
-          aria-describedby="basic-addon1"
-          required
-          name='seleccion' value={seleccion} onChange={(e) => setSeleccion(e.target.value)}>
-          <option value=''>Seleccione...</option>
-            <option value='XS'>XS</option>
-            <option value='S'>S</option>
-            <option value='M'>M</option>
-            <option value='L'>L</option>
-            <option value='XL'>XL</option>
-            
-          </select>Talle</span></div>
-          <div className="input-group mb-3">
-          <span className="label input-group-text" id="basic-addon1">
+              <input
+                className="form-control"
+                aria-label="Username"
+                aria-describedby="basic-addon1"
+                required
+                type="text"
+                name="nombreComercial"
+                placeholder="Ingrese nombre comercial de producto"
+                value={producto.nombreComercial}
+                onChange={(e) => onInputChangeInput(e)}
+              />
+            </div>
+            <div className="input-group mb-3">
+              <span className="label input-group-text" id="basic-addon1">
+                <select
+                  className="form-control"
+                  aria-label="Username"
+                  aria-describedby="basic-addon1"
+                  required
+                  name="seleccion"
+                  value={producto.seleccion}
+                  onChange={(e) => onInputChangeInput(e)}
+                >
+                  <option value="">Seleccione...</option>
+                  <option value="XS">XS</option>
+                  <option value="S">S</option>
+                  <option value="M">M</option>
+                  <option value="L">L</option>
+                  <option value="XL">XL</option>
+                </select>
+                Talle
+              </span>
+            </div>
+            <div className="input-group mb-3">
+              <span className="label input-group-text" id="basic-addon1">
                 Precio Venta
               </span>
-            <input
-            className="form-control"
-            aria-label="Username"
-            aria-describedby="basic-addon1"
-            required
-              type='text'
-              name='precioVenta'
-              placeholder='Ingrese precio de venta del producto'
-              value={precioVenta}
-              onChange={(e) => setPrecioVenta(e.target.value)}
-            />
-          </div>
-          <div className="input-group mb-3">
-             <span className="label input-group-text" id="basic-addon1">
-               <select 
-                     className="form-control"
-                     aria-label="Username"
-                     aria-describedby="basic-addon1"
-                     required
-                     name='proveedor' value={proveedor} 
-                     onChange={(e) => setProveedor(e.target.value)}>
-        <option value="">Seleccione...</option>
-        {proveedores.map((prov) => (
-          <option key={prov.id} value={prov.id}>{prov.id} - {prov.nombre}- {prov.cuit}</option>
-        ))}
-      </select>
-      Proveedor</span>
-      </div>
-          <div className="input-group mb-3">
-          <span className="label input-group-text" id="basic-addon1">
+              <input
+                className="form-control"
+                aria-label="Username"
+                aria-describedby="basic-addon1"
+                required
+                type="number"
+                name="precioVenta"
+                placeholder="Ingrese precio de venta del producto"
+                value={producto.precioVenta}
+                onChange={(e) => onInputChangeInput(e)}
+              />
+            </div>
+            <div className="input-group mb-3">
+              <span className="label input-group-text" id="basic-addon1">
+                <select
+                  className="form-control"
+                  aria-label="Username"
+                  aria-describedby="basic-addon1"
+                  required
+                  name="proveedor"
+                  value={producto.proveedor}
+                  onChange={(e) => onInputChangeInput(e)}
+                >
+                  <option value="">Seleccione...</option>
+                  {proveedores.map((prov) => (
+                    <option key={prov.id} value={prov.id}>
+                      {prov.nombreProveedor}- {prov.cuit}
+                    </option>
+                  ))}
+                </select>
+                Proveedor
+              </span>
+            </div>
+            <div className="input-group mb-3">
+              <span className="label input-group-text" id="basic-addon1">
                 Precio Compra
               </span>
-            <input
-            className="form-control"
-            aria-label="Username"
-            aria-describedby="basic-addon1"
-            required
-              type='text'
-              name='precioCompra'
-              placeholder='Ingrese precio de compra del producto'
-              value={precioCompra}
-              onChange={(e) => setPrecioCompra(e.target.value)}
-            />
-          </div>
-          <div className="input-group mb-3">
-          <span className="label input-group-text" id="basic-addon1">
+              <input
+                className="form-control"
+                aria-label="Username"
+                aria-describedby="basic-addon1"
+                required
+                type="number"
+                name="precioCompra"
+                placeholder="Ingrese precio de compra del producto"
+                value={producto.precioCompra}
+                onChange={(e) => onInputChangeInput(e)}
+              />
+            </div>
+            <div className="input-group mb-3">
+              <span className="label input-group-text" id="basic-addon1">
                 Imagen
               </span>
-            <input
-            className="form-control"
-            aria-label="Username"
-            aria-describedby="basic-addon1"
-            required
-              type='file'
-              name="fotoProducto"
-                onChange={handleImageChange}
-            />
-          </div>
-          <div className="card-footer text-body-secondary">
-                {editMode ? (
-                  <div>
-                    <button className="btn btn-warning m-2" onClick={updateProducto}>
-                      Actualizar
-                    </button>
-                    <button className="btn btn-info m-2" onClick={limpiarCampos}>
-                      Cancelar
-                    </button>
-                  </div>
-                ) : (
-                  <button className="btn btn-success" type="submit">
-                    Agregar
+              <input
+                className="form-control"
+                aria-label="Username"
+                aria-describedby="basic-addon1"
+                required
+                type="file"
+                name="fotoProducto"
+                onChange={(e) => onInputChangeInput(e)}
+              />
+            </div>
+            <div className="card-footer text-body-secondary">
+              {editMode ? (
+                <div>
+                  <button
+                    className="btn btn-warning m-2"
+                    onClick={updateProducto}
+                  >
+                    Actualizar
                   </button>
-                )}
+                  <button className="btn btn-info m-2" onClick={limpiarCampos}>
+                    Cancelar
+                  </button>
                 </div>
-        </form>
+              ) : (
+                <button className="btn btn-success" type="submit">
+                  Agregar
+                </button>
+              )}
+            </div>
+          </form>
         </div>
       </div>
 
@@ -335,17 +356,20 @@ function Producto(){
                       role="group"
                       aria-label="Basic example"
                     >
-                      <button type="button" className="btn btn-info"
-                          onClick={() => handleEdit(producto)}>
-                            Update
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-danger"
-                            onClick={() => eliminarProductoInfo(producto.id)}
-                          >
-                            Delete
-                          </button>
+                      <button
+                        type="button"
+                        className="btn btn-info"
+                        onClick={() => handleEdit(producto)}
+                      >
+                        Update
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={() => eliminarProductoInfo(producto.id)}
+                      >
+                        Delete
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -354,10 +378,8 @@ function Producto(){
           </tbody>
         </table>
       </div>
-
-        
     </div>
-    )
+  );
 }
 
 export default Producto;

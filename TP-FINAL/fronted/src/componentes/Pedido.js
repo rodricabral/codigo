@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream
-=======
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "../componentes/estilos.css";
@@ -19,6 +17,7 @@ import { v4 as uuidv4 } from "uuid";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 
+
 import { Toast } from "primereact/toast";
 
 function Pedido() {
@@ -35,7 +34,7 @@ function Pedido() {
   const [productDialog, setProductDialog] = useState(false);
   const [deleteProductDialog, setDeleteProductDialog] = useState(false);
 
-  const [pedidoForm, setPedidoForm] = useState({
+const [pedidoForm, setPedidoForm] = useState({
     id: "",
     productoNombre: "",
     clienteNombre: "",
@@ -419,4 +418,3 @@ function Pedido() {
 }
 
 export default Pedido;
->>>>>>> Stashed changes
