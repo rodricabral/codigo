@@ -7,7 +7,7 @@ import Producto from "./componentes/Producto";
 import Pedido from "./componentes/Pedido";
 import Cliente from "./componentes/Cliente";
 import Catalogo from "./componentes/Catalogo";
-import { Auth } from "./componentes/Auth";
+import Auth from "./componentes/Auth";
 
 
 
