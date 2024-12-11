@@ -4,18 +4,13 @@ import { Column } from "primereact/column";
 import { Card } from "primereact/card";
 import { Button } from "primereact/button";
 /* import "../estilos-pagina/mostrar.css"; */
-import axios from 'axios';
+import axios from "axios";
 
 /* import logoProducto from "./IMG COMPONENTES/catalogo.png"; */
 
 const API_BASE_URL = "http://localhost:3002/api";
 
 function CatalogoProducto() {
-    const handleSubmit = (item) => {
-        setCatalogo([...catalogo, item]); 
-      };
-
-   const [catalogo, setCatalogo] = useState([])
 
   const [catalogoList, setCatalogoList] = useState([]);
 
@@ -23,9 +18,10 @@ function CatalogoProducto() {
   const fetchProductos = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/producto/el-producto`);
+      console.log(response.data)
       setCatalogoList(response.data);
     } catch (error) {
-      console.error('Error fetching productos:', error);
+      console.error("Error fetching productos:", error);
     }
   };
 
@@ -35,16 +31,18 @@ function CatalogoProducto() {
 
   const eliminarProducto = async (id) => {
     try {
-      await axios.delete(`${API_BASE_URL}/eliminar/${id}`);
-
-      const tareasActualizadas = catalogoList.filter(
-        (item) => item.nombreComercial !== id
-      );
-      setCatalogo(tareasActualizadas);
+      await axios.delete(`${API_BASE_URL}/producto/eliminar/${id}`);
     } catch (error) {
-      console.error('Error eliminando producto:', error);
+      console.error("Error eliminando producto:", error);
     }
   };
+
+  function visualizarImagen (arrayBuffer) {
+    
+    const blob = new Blob([arrayBuffer], { type: 'image/jpg' }); // Ajusta el tipo según tu imagen
+    console.log(blob)
+    return URL.createObjectURL(blob);
+  }
 
   return (
     <div className="container">
@@ -60,42 +58,37 @@ function CatalogoProducto() {
                 title={item.nombreComercial}
                 subTitle={`US$${item.precioVenta}`}
                 footer={
-                    <>
-                  <Button
-                    label="Eliminar"
-                    severity="danger"
-                    icon="pi pi-times"
-                    onClick={() => eliminarProducto(item.id)} // Asegúrate de que "id" esté presente
-                  />
-                  <Button
-                        label="Agregar"
-                        icon="pi pi-check"
-                        onClick={() => handleSubmit(item)}
-                      />
-                      </>
+                  <>
+                    <Button
+                      label="Eliminar"
+                      severity="danger"
+                      icon="pi pi-times"
+                      onClick={() => eliminarProducto(item.id)} // Asegúrate de que "id" esté presente
+                    />
+                    <Button
+                      label="Agregar"
+                      icon="pi pi-check"
+                     /*  onClick={() => handleSubmit(item)} */
+                    />
+                  </>
                 }
-                header={<img src={`http://localhost:3002/uploads/${item.fotoProducto}`} alt={item.nombre} style={{ width: "100%", height: "200px", objectFit: "cover" }} />}
+                header={
+                  <img
+                    src={visualizarImagen(item.fotoProducto)}
+                    alt={item.nombre}
+                    style={{
+                      width: "100%",
+                      height: "200px",
+                      objectFit: "cover",
+                    }}
+                  />
+                }
                 className="w-100 mt-4 shadow-8 surface-card text-center border-round-sm"
               />
             </div>
           ))}
         </div>
 
-        <div className="card shadow-8 surface-card text-center border-round-sm h-100rem w-70rem font-semibold">
-          <DataTable
-            value={catalogo}
-            tableStyle={{ minWidth: "50rem" }}
-            selectionMode="single"
-            onRowClick={(event) => {
-              console.log(event.data);
-              window.location.href = `/catalogoproducto/${event.data.id}`; // Cambiado a 'id' para consistencia
-            }}
-          >
-            <Column field="nombreComercial" header="Nombre comercial" />
-            <Column field="precioVenta" header="Precio de venta" />
-            <Column field="fotoProducto" header="Foto del producto" body={(rowData) => <img src={rowData.fotoProducto} alt={rowData.nombre} style={{ width: "50px", height: "50px", objectFit: "cover" }} />} />
-          </DataTable>
-        </div>
       </div>
 
       <br />

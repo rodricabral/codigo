@@ -30,7 +30,7 @@ function Producto(){
 
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    /* e.preventDefault(); */
     const formData = new FormData();
     formData.append("id", id);
     formData.append("nombre", nombre);
@@ -275,7 +275,7 @@ function Producto(){
         </div>
       </div>
 
-      {/* <div className="card">
+      <div className="card">
         <h2 className="text-center">Lista de Productos</h2>
         <table
           className="table table-striped "
@@ -330,11 +330,11 @@ function Producto(){
             })}
           </tbody>
         </table>
-      </div> */}
+      </div>
 
     
   
-<div className="container">
+{/* <div className="container">
   <div className="row">
       {productoInfoList.map((producto) => (
         <div key={producto.id} className="mx-1 m-3 col-3 card">
@@ -365,7 +365,7 @@ function Producto(){
         </div>
       ))}
       </div>
-    </div>
+    </div> */}
 
         
     </div>
